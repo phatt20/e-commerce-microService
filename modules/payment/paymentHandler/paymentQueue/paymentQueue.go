@@ -1,0 +1,19 @@
+package paymentqueue
+
+import (
+	"microService/config"
+	"microService/modules/payment/paymentUsecase"
+)
+
+type (
+	PaymentQueueHandler interface{}
+
+	paymentQueueHandler struct {
+		cfg            *config.Config
+		paymentUsecase paymentUsecase.PaymentUsecase
+	}
+)
+
+func NewpaymentQueueHandler(cfg *config.Config, paymentUsecase paymentUsecase.PaymentUsecase) PaymentQueueHandler {
+	return &paymentQueueHandler{cfg, paymentUsecase}
+}

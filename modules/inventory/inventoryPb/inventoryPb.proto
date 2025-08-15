@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "microService/modules/auth/authPb;authPb";
+
+
+message IsAvailableToSellReq{
+    string userId = 1;
+    string itemId = 2;
+}
+
+message IsAvailableToSellRes{
+    bool IsAvailable = 1;
+}
+
+service InventoryGrpcService{
+    rpc IsAvailableToSell(IsAvailableToSellReq) returns (IsAvailableToSellRes){}
+}

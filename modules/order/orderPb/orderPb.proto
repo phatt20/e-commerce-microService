@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "microService/modules/order/orderPb;orderPb";
+
+message GetOrderRequest { string order_id = 1; }
+message OrderItem { string sku = 1; int32 qty = 2; int64 price = 3; }
+message Order {
+  string id = 1;
+  string user_id = 2;
+  int64 amount = 3;
+  string currency = 4;
+  string status = 5;
+  repeated OrderItem items = 6;
+}
+message GetOrderResponse { Order order = 1; }
+
+service OrderQuery {
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+}
