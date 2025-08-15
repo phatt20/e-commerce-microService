@@ -1,25 +1,4 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, coverage reports
-*.test
-*.out
-coverage.out
-
-# Go modules
-/go.sum
-/go.mod
-
-# Build folders
-/bin/
-/build/
-/dist/
-
-# IDE / Editor
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -27,17 +6,22 @@ coverage.out
 # Logs
 *.log
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Environment / secret files
+# Env / secrets
 .env
 .env.local
 .env.*.local
+env/**/.env*
+env/**/.env.*
+env/dev/.env.*
+env/prod/.env.*
+env/test/.env.*
 
 # Docker
 docker-compose.db.yml
 
-# Docs (optional, ถ้าไม่อยาก push diagram ตอนนี้)
+# Docs images (ไม่อยาก push diagram)
 docs/*.png
