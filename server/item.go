@@ -8,7 +8,7 @@ import (
 )
 
 func (s *server) itemService() {
-	repo := itemRepository.NewitemRepository(s.db)
+	repo := itemRepository.NewitemRepository(s.mongo)
 	usecase := itemUsecase.NewitemUsecase(repo)
 	itemHttpHandler := itemHttpHandler.NewitemHttpHandler(s.cfg, usecase)
 	itemGrpcHandler := itemGrpcHandler.NewitemGrpcHandler(usecase)

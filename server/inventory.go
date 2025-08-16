@@ -11,7 +11,7 @@ import (
 )
 
 func (s *server) inventpryService() {
-	repo := inventoryRepository.NewInventoryRepository(s.db)
+	repo := inventoryRepository.NewInventoryRepository(s.mongo)
 	usecase := inventoryUsecase.NewInventoryUsecase(repo)
 	inventpryHttpHandler := inventoryHttpHandler.NewInventoryHttpHandler(s.cfg, usecase)
 	inventpryGrpcHandler := inventoryGrpcHandler.NewInventoryGrpcHandler(usecase)

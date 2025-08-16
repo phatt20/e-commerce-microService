@@ -18,8 +18,23 @@ func main() {
 		}
 		return os.Args[1]
 	}())
-	db := database.DbConn(ctx, &cfg)
-	defer db.Disconnect(ctx)
 
-	server.Start(ctx, &cfg, db)
+	// Mongo
+	dbM := database.DbConn(ctx, &cfg)
+	if dbM != nil {
+		defer func() {
+			if err := dbM.Disconnect(ctx); err != nil {
+				log.Printf("⚠️ error disconnecting Mongo: %v", err)
+			}
+		}()
+	}
+
+	// Postgres
+	var dbPost database.DatabasesPostgres
+	if cfg.Postgres != nil {
+		dbPost = database.NewPostgresDatabase(cfg.Postgres)
+	}
+
+	// Run server
+	server.Start(ctx, &cfg, dbPost, dbM)
 }

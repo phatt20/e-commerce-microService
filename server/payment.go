@@ -10,7 +10,7 @@ import (
 )
 
 func (s *server) paymentService() {
-	repo := paymentRepository.NewPaymentRepository(s.db)
+	repo := paymentRepository.NewPaymentRepository(s.mongo)
 	usecase := paymentUsecase.NewPaymentUsecase(repo)
 	paymentHttpHandler := paymentHttpHandler.NewPaymentHttpHandler(s.cfg, usecase)
 	paymentGrpcHandler := paymentGrpcHandler.NewpaymentGrpcHandler(usecase)

@@ -7,6 +7,7 @@ import (
 	middlewarehandler "microService/modules/middleware/middlewareHandler"
 	middlewarerepository "microService/modules/middleware/middlewareRepository"
 	middlewareusecase "microService/modules/middleware/middlewareUsecase"
+	"microService/pkg/database"
 	"microService/pkg/jwtauth"
 	"net/http"
 	"os"
@@ -23,13 +24,14 @@ import (
 type (
 	server struct {
 		app        *echo.Echo
-		db         *mongo.Client
+		mongo      *mongo.Client
+		postgres   database.DatabasesPostgres
 		cfg        *config.Config
 		middleware middlewarehandler.MiddlewareHandler
 	}
 )
 
-func newMiddleware(cfg *config.Config, db *mongo.Client) middlewarehandler.MiddlewareHandler {
+func newMiddleware(cfg *config.Config, db *mongo.Client, dbPost database.DatabasesPostgres) middlewarehandler.MiddlewareHandler {
 	repo := middlewarerepository.NewMiddlewareRepository()
 	usecase := middlewareusecase.NewMiddlewareUsecase(repo)
 	return middlewarehandler.NewMiddlewareHandler(cfg, usecase)
@@ -53,14 +55,15 @@ func (s *server) httpListening() {
 		log.Fatalf("Error: %v", err)
 	}
 }
-
-func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
+func Start(pctx context.Context, cfg *config.Config, dbPost database.DatabasesPostgres, dbM *mongo.Client) {
 	s := &server{
 		app:        echo.New(),
-		db:         db,
+		mongo:      dbM,
+		postgres:   dbPost,
 		cfg:        cfg,
-		middleware: newMiddleware(cfg, db),
+		middleware: newMiddleware(cfg, dbM, dbPost),
 	}
+
 	jwtauth.SetApiKey(cfg.Jwt.ApiSecretKey)
 
 	s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{

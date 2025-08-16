@@ -11,21 +11,28 @@ const (
 )
 
 type Order struct {
-	ID        string
-	UserID    string
-	Amount    int64  // minor unit (e.g., satang)
-	Currency  string // THB
-	Status    OrderStatus
-	Items     []OrderItem
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string      `gorm:"primaryKey;type:uuid;not null" json:"id"`
+	UserID    string      `gorm:"index;not null" json:"user_id"`
+	Amount    int64       `gorm:"not null" json:"amount"`                // minor unit (satang)
+	Currency  string      `gorm:"type:char(3);not null" json:"currency"` // THB
+	Status    OrderStatus `gorm:"type:varchar(16);not null" json:"status"`
+	Items     []OrderItem `gorm:"foreignKey:OrderID;references:ID" json:"items"`
+	CreatedAt time.Time   `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
+func (Order) TableName() string { return "orders" }
+
 type OrderItem struct {
-	SKU   string
-	Qty   int32
-	Price int64 // price per unit, optional
+	ID      int64  `gorm:"primaryKey;autoIncrement" json:"id"`
+	OrderID string `gorm:"index;not null" json:"order_id"`
+	SKU     string `gorm:"index;not null" json:"sku"`
+	Qty     int32  `gorm:"not null" json:"qty"`
+	Price   int64  `gorm:"not null" json:"price"` // price per unit
+	// CreatedAt/UpdatedAt ถ้าอยากเก็บก็เติมได้
 }
+
+func (OrderItem) TableName() string { return "order_items" }
 
 type CreateOrderInput struct {
 	UserID   string         `json:"-"`
@@ -34,4 +41,3 @@ type CreateOrderInput struct {
 	Currency string         `json:"currency" validate:"required"`
 	Meta     map[string]any `json:"meta,omitempty"`
 }
-

@@ -13,7 +13,7 @@ import (
 )
 
 func (s *server) userService() {
-	repo := userRepository.NewUserRepository(s.db)
+	repo := userRepository.NewUserRepository(s.mongo)
 	usecase := userUsecase.NewUserUsecase(repo)
 	userHttpHandler := userHttpHandler.NewUserHttpHandler(s.cfg, usecase)
 	userGrpcHandler := userGrpcHandler.NewUserGrpcHandler(usecase)

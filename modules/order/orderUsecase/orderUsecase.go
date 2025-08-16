@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"encoding/json"
 	"microService/modules/order/domain"
 	"microService/modules/order/orderRepo"
 	"time"
@@ -14,14 +13,17 @@ import (
 type OrderUsecaseInterface interface {
 	CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error)
 }
+
 type OrderUsecase struct {
-	repo      orderRepo.OrderRepository
-	outbox    orderRepo.OutboxRepository
+	repo      *orderRepo.Repo 
 	validator *validator.Validate
 }
 
-func NewOrderUsecase(r orderRepo.OrderRepository, ob orderRepo.OutboxRepository) OrderUsecaseInterface {
-	return &OrderUsecase{repo: r, outbox: ob, validator: validator.New()}
+func NewOrderUsecase(r *orderRepo.Repo) OrderUsecaseInterface {
+	return &OrderUsecase{
+		repo:      r,
+		validator: validator.New(),
+	}
 }
 
 func (uc *OrderUsecase) CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error) {
@@ -43,32 +45,15 @@ func (uc *OrderUsecase) CreateOrder(ctx context.Context, in *domain.CreateOrderI
 		UpdatedAt: now,
 	}
 
-	// within ONE DB transaction: write order + outbox
-	err := uc.repo.Tx(ctx, func(ctx context.Context) error {
-		if err := uc.repo.InsertOrder(ctx, order); err != nil {
-			return err
-		}
-		payload := map[string]any{
-			"orderId":   order.ID,
-			"userId":    order.UserID,
-			"items":     order.Items,
-			"amount":    order.Amount,
-			"currency":  order.Currency,
-			"createdAt": now,
-		}
-		b, _ := json.Marshal(payload)
-		return uc.outbox.Add(ctx, &domain.Outbox{
-			Aggregate: "order",
-			EventType: domain.EventOrderCreated,
-			Key:       order.ID,
-			Payload:   b,
-			Status:    "pending",
-			CreatedAt: now,
-			UpdatedAt: now,
-		})
-	})
-	if err != nil {
+	trace := map[string]string{
+		"source": "usecase",
+	}
+
+	if err := uc.repo.Tx(ctx, func(ctx context.Context) error {
+		return uc.repo.CreateOrderWithOutbox(ctx, order, trace)
+	}); err != nil {
 		return nil, err
 	}
+
 	return order, nil
 }

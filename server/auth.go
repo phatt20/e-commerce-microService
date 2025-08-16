@@ -12,7 +12,7 @@ import (
 )
 
 func (s *server) authService() {
-	repo := authrepository.NewAuthRepository(s.db)
+	repo := authrepository.NewAuthRepository(s.mongo)
 	usecase := authusecase.NewAuthUsecase(repo)
 	httpHandler := authHttpHandler.NewAuthHttpHandler(s.cfg, usecase)
 	authGrpcHandler := authGrpcHandler.AuthGrpcHandler(usecase)

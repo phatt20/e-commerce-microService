@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"microService/modules/order/orderRepo"
 	"microService/pkg/queue"
 	"time"
 )
@@ -17,7 +16,7 @@ type Outbox struct {
 }
 
 type OutboxPublisher struct {
-	outboxRepo orderRepo.OutboxRepository
+	outboxRepo OutboxRepository
 	brokerURLs []string
 	apiKey     string
 	secret     string
@@ -26,7 +25,7 @@ type OutboxPublisher struct {
 }
 
 func NewOutboxPublisher(
-	r orderRepo.OutboxRepository,
+	r OutboxRepository,
 	brokerURLs []string,
 	apiKey string,
 	secret string,
