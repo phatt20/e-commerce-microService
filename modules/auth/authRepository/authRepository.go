@@ -103,6 +103,7 @@ func (r *authRepository) InsertOneUserCredential(pctx context.Context, req *auth
 
 	return result.InsertedID.(primitive.ObjectID), nil
 }
+
 func (r *authRepository) FindOneUserCredential(pctx context.Context, credentialId string) (*auth.Credential, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()

@@ -8,12 +8,6 @@ import (
 	"time"
 )
 
-type Outbox struct {
-	ID        int64
-	EventType string
-	Key       string
-	Payload   string
-}
 
 type OutboxPublisher struct {
 	outboxRepo OutboxRepository

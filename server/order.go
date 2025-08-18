@@ -6,6 +6,7 @@ import (
 	orderhanlder "microService/modules/order/orderHanlder"
 	"microService/modules/order/orderRepo"
 	orderUsecase "microService/modules/order/orderUsecase"
+	"microService/pkg/database"
 	"microService/pkg/outbox"
 	"time"
 )
@@ -15,9 +16,11 @@ func (s *server) orderService() {
 
 	// 2. Repository
 	repo := orderRepo.NewRepo(s.postgres)
+	txHelper := database.NewTxHelper(s.postgres)
+
 	outboxRepo := outbox.NewOutboxRepo(s.postgres)
 
-	usecase := orderUsecase.NewOrderUsecase(repo)
+	usecase := orderUsecase.NewOrderUsecase(repo, txHelper)
 	orderHandler := orderhanlder.NewOrderHttpHandler(s.cfg, usecase)
 	// grpcHandler := orderGrpcHandler.NewOrderGrpcHandler(usecase)
 	// queueHandler := orderQueueHandler.NewOrderQueueHandler(s.cfg, usecase)

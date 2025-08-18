@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "microService/modules/payment/paymentPb;paymentPb";
+
+message CreatePaymentRequest {
+  string order_id = 1;
+  string user_id = 2;
+  double amount = 3;
+  string currency = 4; 
+}
+
+message CreatePaymentResponse {
+  string payment_id = 1;
+  string status = 2; 
+  string created_at = 3; 
+}
+
+message GetPaymentRequest {
+  string payment_id = 1;
+}
+
+message GetPaymentResponse {
+  string payment_id = 1;
+  string order_id = 2;
+  string status = 3; // pending | success | failed
+  string updated_at = 4; 
+}
+
+service PaymentService {
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
+  rpc GetPayment(GetPaymentRequest) returns (GetPaymentResponse);
+}

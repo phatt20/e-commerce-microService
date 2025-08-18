@@ -2,7 +2,6 @@ package outbox
 
 import (
 	"context"
-	"microService/modules/order/domain"
 	"microService/pkg/database"
 	"time"
 
@@ -10,9 +9,9 @@ import (
 )
 
 type OutboxRepository interface {
-	Add(ctx context.Context, ob *domain.Outbox) error
-	PollPending(ctx context.Context, limit int) ([]domain.Outbox, error)
-	PollPendingLocked(ctx context.Context, limit int) ([]domain.Outbox, error)
+	Add(ctx context.Context, ob *Outbox) error
+	PollPending(ctx context.Context, limit int) ([]Outbox, error)
+	PollPendingLocked(ctx context.Context, limit int) ([]Outbox, error)
 	MarkDispatched(ctx context.Context, id int64) error
 }
 
@@ -24,16 +23,16 @@ func NewOutboxRepo(db database.DatabasesPostgres) OutboxRepository {
 	return &OutboxRepo{db: db}
 }
 
-func (r *OutboxRepo) Add(ctx context.Context, ob *domain.Outbox) error {
+func (r *OutboxRepo) Add(ctx context.Context, ob *Outbox) error {
 	db := database.GetDB(ctx, r.db.Connect()).WithContext(ctx)
 	return db.Create(ob).Error
 }
 
 // แบบไม่ lock (single worker พอได้)
-func (r *OutboxRepo) PollPending(ctx context.Context, limit int) ([]domain.Outbox, error) {
+func (r *OutboxRepo) PollPending(ctx context.Context, limit int) ([]Outbox, error) {
 	db := database.GetDB(ctx, r.db.Connect()).WithContext(ctx)
-	var res []domain.Outbox
-	if err := db.Where("status = ?", domain.OutboxStatusPending).
+	var res []Outbox
+	if err := db.Where("status = ?", OutboxStatusPending).
 		Order("id ASC").
 		Limit(limit).
 		Find(&res).Error; err != nil {
@@ -44,9 +43,9 @@ func (r *OutboxRepo) PollPending(ctx context.Context, limit int) ([]domain.Outbo
 
 // แบบ lock ด้วย SKIP LOCKED (แนะนำเวลา scale หลาย worker)
 // ควรเรียกใน Transaction ภายนอก
-func (r *OutboxRepo) PollPendingLocked(ctx context.Context, limit int) ([]domain.Outbox, error) {
+func (r *OutboxRepo) PollPendingLocked(ctx context.Context, limit int) ([]Outbox, error) {
 	base := r.db.Connect()
-	var res []domain.Outbox
+	var res []Outbox
 
 	err := base.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		rows, err := tx.Raw(`
@@ -63,7 +62,7 @@ func (r *OutboxRepo) PollPendingLocked(ctx context.Context, limit int) ([]domain
 		defer rows.Close()
 
 		for rows.Next() {
-			var ob domain.Outbox
+			var ob Outbox
 			if err := rows.Scan(&ob.ID, &ob.Aggregate, &ob.EventType, &ob.Key, &ob.Payload, &ob.Status, &ob.CreatedAt, &ob.UpdatedAt); err != nil {
 				return err
 			}
@@ -76,10 +75,10 @@ func (r *OutboxRepo) PollPendingLocked(ctx context.Context, limit int) ([]domain
 
 func (r *OutboxRepo) MarkDispatched(ctx context.Context, id int64) error {
 	db := database.GetDB(ctx, r.db.Connect()).WithContext(ctx)
-	return db.Model(&domain.Outbox{}).
+	return db.Model(&Outbox{}).
 		Where("id = ?", id).
 		Updates(map[string]any{
-			"status":     domain.OutboxStatusDispatched,
+			"status":     OutboxStatusDispatched,
 			"updated_at": time.Now().UTC(),
 		}).Error
 }

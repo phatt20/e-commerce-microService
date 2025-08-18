@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"microService/config"
 	"microService/modules/order/domain"
 	"microService/modules/order/orderRepo"
+	"microService/pkg/database"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -11,22 +13,24 @@ import (
 )
 
 type OrderUsecaseInterface interface {
-	CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error)
+	CreateOrder(ctx context.Context, cfg *config.Config, in *domain.CreateOrderInput) (*domain.Order, error)
 }
 
 type OrderUsecase struct {
-	repo      *orderRepo.Repo 
+	repo      *orderRepo.Repo
 	validator *validator.Validate
+	txHelper  *database.TxHelper
 }
 
-func NewOrderUsecase(r *orderRepo.Repo) OrderUsecaseInterface {
+func NewOrderUsecase(r *orderRepo.Repo, tx *database.TxHelper) OrderUsecaseInterface {
 	return &OrderUsecase{
 		repo:      r,
+		txHelper:  tx,
 		validator: validator.New(),
 	}
 }
 
-func (uc *OrderUsecase) CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error) {
+func (uc *OrderUsecase) CreateOrder(ctx context.Context, cfg *config.Config, in *domain.CreateOrderInput) (*domain.Order, error) {
 	if err := uc.validator.Struct(in); err != nil {
 		return nil, err
 	}
@@ -46,11 +50,13 @@ func (uc *OrderUsecase) CreateOrder(ctx context.Context, in *domain.CreateOrderI
 	}
 
 	trace := map[string]string{
-		"source": "usecase",
+		"source":    "order-service",
+		"component": "usecase",
+		"trace_id":  uuid.NewString(),
 	}
 
-	if err := uc.repo.Tx(ctx, func(ctx context.Context) error {
-		return uc.repo.CreateOrderWithOutbox(ctx, order, trace)
+	if err := uc.txHelper.Transaction(ctx, func(ctx context.Context) error {
+		return uc.repo.CreateOrderWithOutbox(ctx, cfg.Grpc.PaymentUrl, order, trace)
 	}); err != nil {
 		return nil, err
 	}

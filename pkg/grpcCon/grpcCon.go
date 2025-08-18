@@ -7,6 +7,7 @@ import (
 	"microService/config"
 	"microService/modules/auth/authPb"
 	itemPb "microService/modules/item/itemPb"
+	"microService/modules/payment/paymentPb"
 	"microService/modules/user/userPb"
 	"microService/pkg/jwtauth"
 
@@ -22,6 +23,7 @@ type (
 		Auth() authPb.AuthGrpcServiceClient
 		User() userPb.UserGrpcServiceClient
 		Item() itemPb.ItemGrpcServiceClient
+		Payment() paymentPb.PaymentServiceClient
 	}
 
 	grpcClientFactory struct {
@@ -71,6 +73,9 @@ func (g *grpcClientFactory) User() userPb.UserGrpcServiceClient {
 
 func (g *grpcClientFactory) Item() itemPb.ItemGrpcServiceClient {
 	return itemPb.NewItemGrpcServiceClient(g.client)
+}
+func (g *grpcClientFactory) Payment() paymentPb.PaymentServiceClient {
+	return paymentPb.NewPaymentServiceClient(g.client)
 }
 
 func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
