@@ -28,3 +28,48 @@ payment
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     ./modules/payment/paymentPb/paymentPb.proto
+
+
+
+
+//kafka
+//list
+docker exec -it kafka-1 kafka-topics.sh --list --bootstrap-server localhost:9092       
+
+
+//check messages
+docker exec -it kafka-1 kafka-console-consumer.sh \    
+--bootstrap-server localhost:9092 \
+--topic order \
+--from-beginning \
+--max-messages 10
+
+
+// create topic and  partitions
+docker exec -it kafka-1 kafka-topics.sh \              
+--create \
+--topic order \
+--bootstrap-server localhost:9092 \
+--replication-factor 1 \
+--partitions 1
+
+
+มันจะรัน server เเล้วเเต่ว่าเเต่ละตัว set adapter ไว้กี่ตัว เช่น order มี http,grpc,queue เเล้วมันจะรันตัว outbox ตามที่ set ไว้ เเละตัว push messagesOutbox auto ทุกๆ 3 วิ
+// init-project
+docker compose -f ใส่ชื่อ file up -d
+
+go run main.go ./env/dev/.env.auth
+go run main.go ./env/dev/.env.user
+go run main.go ./env/dev/.env.payment
+go run main.go ./env/dev/.env.inventory
+go run main.go ./env/dev/.env.item
+go run main.go ./env/dev/.env.order
+
+
+// migration
+go run ./pkg/database/script/migration.go ./env/dev/.env.user && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.auth && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.item && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.inventory && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.payment && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.order 

@@ -162,7 +162,8 @@ func NewProducer(opt ProducerOption) (sarama.SyncProducer, error) {
 	cfg.Producer.Return.Successes = true
 	cfg.Producer.RequiredAcks = opt.Acks
 	cfg.Producer.Retry.Max = opt.RetryMax
-	cfg.Producer.Idempotent = true                    // เปิด idempotent producer
+	cfg.Producer.Idempotent = true
+	cfg.Net.MaxOpenRequests = 1
 	cfg.Producer.Compression = sarama.CompressionZSTD // ช่วยลด bandwidth/latency (ปรับได้)
 
 	// Partitioning: ถ้ามี Key Sarama จะใช้ hash partitioner ให้เองอยู่แล้ว
@@ -303,7 +304,6 @@ func RunConsumerGroup(ctx context.Context, cg sarama.ConsumerGroup, topics []str
 		}
 	}
 }
-
 
 var validate = validator.New()
 

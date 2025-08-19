@@ -44,7 +44,7 @@ func NewUserRepository(db *mongo.Client) UserRepository {
 }
 
 func (r *userRepository) userDbConn(pctx context.Context) *mongo.Database {
-	return r.db.Database("user")
+	return r.db.Database("user_db")
 }
 
 func (r *userRepository) GetOffset(pctx context.Context) (int64, error) {

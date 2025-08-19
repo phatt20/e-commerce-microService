@@ -16,7 +16,7 @@ type Order struct {
 	Amount    int64       `gorm:"not null" json:"amount"`                // minor unit (satang)
 	Currency  string      `gorm:"type:char(3);not null" json:"currency"` // THB
 	Status    OrderStatus `gorm:"type:varchar(16);not null" json:"status"`
-	Items     []OrderItem `gorm:"foreignKey:OrderID;references:ID" json:"items"`
+	Items     []OrderItem `gorm:"foreignKey:OrderID;references:ID" json:"items"` // ใช้ relation
 	CreatedAt time.Time   `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
 }
@@ -35,9 +35,9 @@ type OrderItem struct {
 func (OrderItem) TableName() string { return "order_items" }
 
 type CreateOrderInput struct {
-	UserID   string         `json:"-"`
-	Items    []OrderItem    `json:"items" validate:"min=1,dive"`
-	Amount   int64          `json:"amount" validate:"gt=0"`
-	Currency string         `json:"currency" validate:"required"`
-	Meta     map[string]any `json:"meta,omitempty"`
+	UserID   string      `json:"user_id" validate:"required"`
+	Items    []OrderItem `json:"items" validate:"min=1,dive"`
+	Amount   int64       `json:"amount" validate:"gt=0"`
+	Currency string      `json:"currency" validate:"required"`
+	// Meta     map[string]any `json:"meta,omitempty"`
 }

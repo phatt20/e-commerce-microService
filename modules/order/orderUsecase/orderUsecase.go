@@ -36,7 +36,7 @@ func (uc *OrderUsecase) CreateOrder(ctx context.Context, cfg *config.Config, in 
 	}
 
 	now := time.Now().UTC()
-	orderID := "ORD-" + uuid.NewString()
+	orderID := uuid.NewString()
 
 	order := &domain.Order{
 		ID:        orderID,
