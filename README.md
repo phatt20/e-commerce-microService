@@ -15,3 +15,7 @@ Microservices eCommerce project.
 ## System Diagram
 ![System Diagram](docs/version2.jpg)
 
+
+## Credits
+
+- Some parts of the code were adapted from [Rayato159/hello-sekai-shop-microservices](https://github.com/Rayato159/hello-sekai-shop-microservices) (MIT License).
