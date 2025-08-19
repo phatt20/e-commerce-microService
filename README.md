@@ -13,4 +13,5 @@ Microservices eCommerce project.
 - Diagram: in-progress
 
 ## System Diagram
-![System Diagram]("")
+![System Diagram](docs/version2.jpg)
+
