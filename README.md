@@ -98,14 +98,14 @@ Microservices eCommerce Project (Learning Purpose)
 ---
 
 ## 📊 EVENT FLOW
-![EVENT FLOW](docs/ServiceTopology.jpg)
+![EVENT FLOW](docs/event.jpg)
 
 ---
 
 ---
 
 ## 📊 System Diagram
-![System Diagram](docs/event.jpg)
+![System Diagram](docs/version2.jpg)
 
 ---
 
