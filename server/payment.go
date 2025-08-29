@@ -5,14 +5,11 @@ import (
 	"log"
 	"time"
 
-	paymentGrpcHandler "microService/modules/payment/paymentHandler/grpc"
 	paymentHttpHandler "microService/modules/payment/paymentHandler/http"
 	paymentQueueHandler "microService/modules/payment/paymentHandler/paymentQueue"
-	"microService/modules/payment/paymentPb"
 	"microService/modules/payment/paymentRepository"
 	"microService/modules/payment/paymentUsecase"
 	"microService/pkg/database"
-	grpccon "microService/pkg/grpcCon"
 	"microService/pkg/outbox"
 )
 
@@ -26,20 +23,20 @@ func (s *server) paymentService() {
 	usecase := paymentUsecase.NewPaymentUsecase(repo, txHelper)
 
 	httpHandler := paymentHttpHandler.NewPaymentHttpHandler(s.cfg, usecase)
-	grpcHandler := paymentGrpcHandler.NewpaymentGrpcHandler(usecase)
+	// grpcHandler := paymentGrpcHandler.NewpaymentGrpcHandler(usecase)
 	queueHandler := paymentQueueHandler.NewpaymentQueueHandler(s.cfg, usecase)
 
 	_ = queueHandler
 	_ = httpHandler
 
-	go func() {
-		grpcServer, lis := grpccon.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.AuthUrl)
-		paymentPb.RegisterPaymentServiceServer(grpcServer, grpcHandler)
-		log.Printf("Payment gRPC server listening on %s", s.cfg.Grpc.PaymentUrl)
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Println("gRPC server stopped:", err)
-		}
-	}()
+	// go func() {
+	// 	grpcServer, lis := grpccon.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.AuthUrl)
+	// 	paymentPb.RegisterPaymentServiceServer(grpcServer, grpcHandler)
+	// 	log.Printf("Payment gRPC server listening on %s", s.cfg.Grpc.PaymentUrl)
+	// 	if err := grpcServer.Serve(lis); err != nil {
+	// 		log.Println("gRPC server stopped:", err)
+	// 	}
+	// }()
 
 	// Start Outbox worker
 	worker := outbox.NewOutboxPublisher(

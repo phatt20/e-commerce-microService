@@ -12,7 +12,7 @@ import (
 
 type (
 	PaymentUsecase interface {
-		CreatePendingPayment(ctx context.Context, orderID, userID string, amount float64, currency string) (*domain.Payment, error)
+		CreatePendingPayment(ctx context.Context, orderID, sagaID, userID string, amount float64, currency string) (*domain.Payment, error)
 	}
 
 	paymentUsecase struct {
@@ -27,7 +27,7 @@ func NewPaymentUsecase(paymentRepository paymentRepository.PaymentRepository, tx
 		txHelper:          tx,
 	}
 }
-func (uc *paymentUsecase) CreatePendingPayment(ctx context.Context, orderID, userID string, amount float64, currency string) (*domain.Payment, error) {
+func (uc *paymentUsecase) CreatePendingPayment(ctx context.Context, orderID, sagaID, userID string, amount float64, currency string) (*domain.Payment, error) {
 	now := time.Now().UTC()
 	p := &domain.Payment{
 		ID:        "PAY-" + uuid.NewString(),
@@ -46,7 +46,7 @@ func (uc *paymentUsecase) CreatePendingPayment(ctx context.Context, orderID, use
 	}
 
 	if err := uc.txHelper.Transaction(ctx, func(ctx context.Context) error {
-		return uc.paymentRepository.CreatePending(ctx, p, trace)
+		return uc.paymentRepository.CreatePending(ctx, p, sagaID, trace)
 	}); err != nil {
 		return nil, err
 	}

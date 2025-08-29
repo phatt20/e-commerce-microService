@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-
 type OutboxPublisher struct {
 	outboxRepo OutboxRepository
 	brokerURLs []string
@@ -53,6 +52,7 @@ func (w *OutboxPublisher) Run(ctx context.Context) error {
 			}
 
 			for _, ob := range rows {
+
 				env := map[string]any{
 					"eventId":    ob.ID,
 					"eventType":  ob.EventType,
@@ -60,27 +60,31 @@ func (w *OutboxPublisher) Run(ctx context.Context) error {
 					"occurredAt": time.Now().UTC().Format(time.RFC3339Nano),
 					"key":        ob.Key,
 					"payload":    json.RawMessage(ob.Payload),
-				}
+					"trace":      ob.Trace,
 
+				}
 				b, _ := json.Marshal(env)
 
-				err := queue.PushMessageWithKeyToQueue(
+				err := queue.PushMessageWithKeyAndHeadersToQueue(
 					w.brokerURLs,
 					w.apiKey,
 					w.secret,
 					w.topic,
 					ob.Key,
 					b,
+					ob.Headers,
 				)
 				if err != nil {
 					log.Println("publish error:", err)
 					continue
 				}
 
+				// 4. mark dispatched
 				if err := w.outboxRepo.MarkDispatched(ctx, ob.ID); err != nil {
 					log.Println("mark dispatched error:", err)
 				}
 			}
+
 		}
 	}
 }

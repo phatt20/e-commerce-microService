@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"microService/config"
 	"microService/modules/order/domain"
 	"microService/modules/order/orderRepo"
 	"microService/pkg/database"
@@ -13,7 +12,7 @@ import (
 )
 
 type OrderUsecaseInterface interface {
-	CreateOrder(ctx context.Context, cfg *config.Config, in *domain.CreateOrderInput) (*domain.Order, error)
+	CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error)
 }
 
 type OrderUsecase struct {
@@ -30,7 +29,7 @@ func NewOrderUsecase(r *orderRepo.Repo, tx *database.TxHelper) OrderUsecaseInter
 	}
 }
 
-func (uc *OrderUsecase) CreateOrder(ctx context.Context, cfg *config.Config, in *domain.CreateOrderInput) (*domain.Order, error) {
+func (uc *OrderUsecase) CreateOrder(ctx context.Context, in *domain.CreateOrderInput) (*domain.Order, error) {
 	if err := uc.validator.Struct(in); err != nil {
 		return nil, err
 	}
@@ -56,7 +55,7 @@ func (uc *OrderUsecase) CreateOrder(ctx context.Context, cfg *config.Config, in 
 	}
 
 	if err := uc.txHelper.Transaction(ctx, func(ctx context.Context) error {
-		return uc.repo.CreateOrderWithOutbox(ctx, cfg.Grpc.PaymentUrl, order, trace)
+		return uc.repo.CreateOrderWithOutbox(ctx, order, trace)
 	}); err != nil {
 		return nil, err
 	}

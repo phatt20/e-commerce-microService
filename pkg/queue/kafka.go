@@ -196,6 +196,27 @@ func NewProducer(opt ProducerOption) (sarama.SyncProducer, error) {
 	return p, nil
 }
 
+func PushMessageWithKeyAndHeadersToQueue(brokerUrls []string, apiKey, secret, topic, key string, message []byte, headers map[string]string) error {
+	producer, err := ConnectProducer(brokerUrls, apiKey, secret)
+	if err != nil {
+		return err
+	}
+	defer producer.Close()
+
+	var hs []sarama.RecordHeader
+	for k, v := range headers {
+		hs = append(hs, sarama.RecordHeader{Key: []byte(k), Value: []byte(v)})
+	}
+	msg := &sarama.ProducerMessage{
+		Topic:   topic,
+		Key:     sarama.StringEncoder(key),
+		Value:   sarama.ByteEncoder(message),
+		Headers: hs,
+	}
+	_, _, err = producer.SendMessage(msg)
+	return err
+}
+
 func PushMessageWithKeyToQueue(brokerUrls []string, apiKey, secret, topic, key string, message []byte) error {
 	// Backward-compatible (แต่ไม่แนะนำเพราะสร้าง producer ทุกครั้ง)
 	p, err := ConnectProducer(brokerUrls, apiKey, secret)

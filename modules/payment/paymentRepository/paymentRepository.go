@@ -10,7 +10,7 @@ import (
 
 type (
 	PaymentRepository interface {
-		CreatePending(ctx context.Context, p *domain.Payment, trace map[string]string) error
+		CreatePending(ctx context.Context, p *domain.Payment, sagaID string, trace map[string]string) error
 		UpdateStatus(ctx context.Context, paymentID, status string, trace map[string]string) error
 	}
 
@@ -23,20 +23,25 @@ func NewPaymentRepository(db database.DatabasesPostgres) *paymentRepository {
 	return &paymentRepository{db: db}
 }
 
-func (r *paymentRepository) CreatePending(ctx context.Context, p *domain.Payment, trace map[string]string) error {
+func (r *paymentRepository) CreatePending(ctx context.Context, p *domain.Payment, sagaID string, trace map[string]string) error {
 	db := database.GetDB(ctx, r.db.Connect()).WithContext(ctx)
 
 	if err := db.Create(p).Error; err != nil {
 		return err
 	}
 
-	ev := outbox.NewEvent("payment.pending", p.ID, map[string]any{
+	ev := outbox.NewEvent("payment.pending", p.OrderID, map[string]any{
 		"payment_id": p.ID,
 		"order_id":   p.OrderID,
 		"user_id":    p.UserID,
 		"amount":     p.Amount,
 		"currency":   p.Currency,
 		"status":     p.Status,
+	}, map[string]string{
+		"ce-type":        "payment.pending",
+		"correlation-id": p.OrderID,
+		"content-type":   "application/json",
+		"saga-id":        sagaID,
 	}, trace)
 
 	ob, err := ev.ToOutboxForPaymentPending("payment")

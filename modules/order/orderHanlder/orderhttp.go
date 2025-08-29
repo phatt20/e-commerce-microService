@@ -34,7 +34,7 @@ func (h *orderHttpHandler) CreateOrder(c echo.Context) error {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.orderUsecase.CreateOrder(ctx, h.cfg, req)
+	res, err := h.orderUsecase.CreateOrder(ctx, req)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
